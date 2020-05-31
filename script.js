@@ -4,6 +4,14 @@ setup = () => {
   pixelDensity(1);
   createCanvas(windowWidth, windowHeight);
   dot = new Dot();
+  const border = min(windowWidth * 0.1, windowHeight * 0.1);
+  const center = createVector(windowWidth / 2, windowHeight / 2);
+  const leftMid = createVector(border, windowHeight / 2 - border);
+  const rightMid = createVector(windowWidth - border, windowHeight / 2 - border);
+  const leftTop = createVector(border, border);
+  const rightTop = createVector(windowWidth - border, border);
+  const leftLow = createVector(border, windowHeight - border);
+  const rightLow = createVector(windowWidth - border, windowHeight - border);
 }
 
 draw = () => {
