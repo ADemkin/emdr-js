@@ -1,64 +1,107 @@
 var dot;
 
 setup = () => {
-  pixelDensity(1);
-  createCanvas(windowWidth, windowHeight);
-  dot = new Dot();
-  const border = min(windowWidth * 0.1, windowHeight * 0.1);
-  const center = createVector(windowWidth / 2, windowHeight / 2);
-  const leftMid = createVector(border, windowHeight / 2 - border);
-  const rightMid = createVector(windowWidth - border, windowHeight / 2 - border);
-  const leftTop = createVector(border, border);
-  const rightTop = createVector(windowWidth - border, border);
-  const leftLow = createVector(border, windowHeight - border);
-  const rightLow = createVector(windowWidth - border, windowHeight - border);
+    pixelDensity(1);
+    createCanvas(windowWidth, windowHeight);
+
+    const border = min(windowWidth * 0.1, windowHeight * 0.1);
+
+    /*************************************************************************\
+    * (0, 0)                                                                         *
+    * topLeft                     topMid                             topRight *
+    *                                                                         *
+    * midLeft                     center                             midRight *
+    *                                                                         *
+    * lowLeft                     lowMid                             lowRight *
+    *                                             (windowWidth, windowHeight) *
+    \*************************************************************************/
+
+    const topLeft = createVector(border, border);
+    const topMid = createVector(windowWidth / 2, border);
+    const topRight = createVector(windowWidth - border, border);
+
+    const midLeft = createVector(border, windowHeight / 2);
+    const center = createVector(windowWidth / 2, windowHeight / 2);
+    const midRight = createVector(windowWidth - border, windowHeight / 2);
+
+    const lowLeft = createVector(border, windowHeight - border);
+    const lowMid = createVector(windowWidth / 2, windowHeight - border);
+    const lowRight = createVector(windowWidth - border, windowHeight - border);
+
+    var pairs = [
+        [topLeft, lowRight],
+        [lowLeft, topRight],
+        [topMid, lowMid],
+        [midLeft, midRight],
+    ]
+    var repititions = 40;
+    var sequence = []
+    // TODO: sequence is bugged
+    for (var i = 0; i < repititions; i++) {
+        for (var j = 0; j < pairs.length; j++) {
+            sequence.push(pairs[j][0]);
+            sequence.push(pairs[j][1]);
+        };
+    };
+    sequence.push(center);
+
+    var radius = min(windowWidth * 0.1, windowHeight * 0.1)
+    dot = new Dot(radius, sequence);
+    console.debug(sequence)
 }
 
 draw = () => {
-  background(180);
-  dot.move();
-  dot.draw();
+    background(180);
+    dot.draw();
+    dot.move();
 }
 
-function Dot(radius) {
-  this.radius = radius;
+function Dot(radius, sequence) {
+    this.radius = radius;
+    this.__sequence = Object.assign([], sequence);
+    this._sequence = sequence
+    this.position = this._sequence.pop()
+    this.destination = this._sequence.pop()
+    this.speed = 10;  // hardcode for now
 
-  this.draw = (position) => {
-    stroke(200);
-    strokeWeight(1);
-    // fill('deepskyblue');
-    fill('purple');
-    ellipse(position.x, position.y, this.radius);
-  }
-}
+    this.draw = () => {
+        stroke(200);
+        strokeWeight(1);
+        fill('purple');
+        ellipse(this.position.x, this.position.y, this.radius);
+    };
 
+    this.destinationIsReached = () => {
+        const accuracy = 10;
+        if (
+            abs(this.destination.x - this.position.x) < accuracy &&
+            abs(this.destination.y - this.position.y) < accuracy
+        ) return true;
+        return false;
+    };
 
-
-
-function Horizontal() {
-  this.pos = createVector(windowWidth / 2, windowHeight / 2)
-  this.relativeBorder = 0.3
-  this.speed = 15;
-  this.radius = 60;  // maybe relative to screen size
-
-  this.border = () => {
-    return this.radius * 1.6;
-  }
-
-  this.move = () => {
-    const border = this.border();
-    if (this.pos.x >= windowWidth - border | this.pos.x <= border) {
-      this.speed *= -1;
+    this.getAngle = () => {
+        return PI / 2 - atan2(
+            this.destination.x - this.position.x,
+            this.destination.y - this.position.y,
+        );
     }
-    this.pos.x += this.speed;
-  }
 
-  this.draw = () => {
-    stroke(200);
-    strokeWeight(1);
-    // fill('deepskyblue');
-    fill('purple');
-    ellipse(this.pos.x, this.pos.y, this.radius);
-  }
+    this.getNextPoint = () => {
+        if (this._sequence.length === 0) {
+            this._sequence = Object.assign([], this.__sequence);
+        }
+        return this._sequence.pop();
+    }
 
+    this.move = () => {
+        if (this.destinationIsReached()) {
+            this.destination = this.getNextPoint();
+        }
+        const angle = this.getAngle();
+        this.position = createVector(
+            this.position.x + this.speed * cos(angle),
+            this.position.y + this.speed * sin(angle),
+        )
+    }
 }
