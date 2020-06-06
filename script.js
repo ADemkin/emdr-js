@@ -1,4 +1,5 @@
 var dot;
+const repititions = 10;
 
 setup = () => {
     pixelDensity(1);
@@ -34,15 +35,13 @@ setup = () => {
         [topMid, lowMid],
         [midLeft, midRight],
     ]
-    var repititions = 40;
     var sequence = []
     // TODO: sequence is bugged
-    for (var i = 0; i < repititions; i++) {
-        for (var j = 0; j < pairs.length; j++) {
-            sequence.push(pairs[j][0]);
-            sequence.push(pairs[j][1]);
+    pairs.forEach((pair) => {
+        for (var i = 0; i < repititions; i++) {
+            sequence.push(pair)
         };
-    };
+    });
     sequence.push(center);
 
     var radius = min(windowWidth * 0.1, windowHeight * 0.1)
@@ -56,10 +55,10 @@ draw = () => {
     dot.move();
 }
 
-function Dot(radius, sequence) {
+function Dot(radius, sequenceOfPatterns) {
     this.radius = radius;
-    this.__sequence = Object.assign([], sequence);
-    this._sequence = sequence
+    this.__sequence = Object.assign([], sequenceOfPatterns);
+    this._sequence = sequenceOfPatterns.reduce((prev, item) => prev.concat(item), [])
     this.position = this._sequence.pop()
     this.destination = this._sequence.pop()
     this.speed = 10;  // hardcode for now
@@ -89,7 +88,7 @@ function Dot(radius, sequence) {
 
     this.getNextPoint = () => {
         if (this._sequence.length === 0) {
-            this._sequence = Object.assign([], this.__sequence);
+            this._sequence = this.__sequence.reduce((prev, item) => prev.concat(item))
         }
         return this._sequence.pop();
     }
